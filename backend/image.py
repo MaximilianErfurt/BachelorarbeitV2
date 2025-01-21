@@ -5,9 +5,17 @@ class Image:
     def __init__(self, name, image):
         self.name = name
         self.image = image
+
+        # param for blossom finding
+        self.cropped_image = image[:, 200:1000]
+        self.rgb_image = cv2.cvtColor(self.cropped_image, cv2.COLOR_GRAY2BGR)
+        self.circle_image = self.rgb_image.copy()
+
+        # param for calibration
         self.cb_image = image
         self.imgp = None
         self.objp = None
+
 
 
     def show_image(self):
@@ -32,3 +40,51 @@ class Image:
         else:
             print("no chessboard found")
             return False
+
+    def find_blossom(self):
+        """
+        find the Blossom in the image
+        :return:
+        """
+        # find the apple via hough circles
+        circles = self.find_circles()
+        cv2.imshow("window",self.circle_image)
+        reduced_to_circle  =self.reduce_to_circle(circles)
+
+
+    def find_circles(self):
+        circles = cv2.HoughCircles(cv2.GaussianBlur(
+            self.cropped_image, (3, 3), 0), cv2.HOUGH_GRADIENT, 1, 300, param1=80, param2=20, minRadius=20,
+            maxRadius=200  #
+        )
+        if circles is not None:
+            if len(circles) == 1:
+                circles = np.uint16(np.around(circles))
+                for circle in circles[0, :]:
+                    # draw outer circle
+                    cv2.circle(self.circle_image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+                    # draw center
+                    cv2.circle(self.circle_image, (circle[0], circle[1]), circle[2], (0, 0, 255), 3)
+                return circles
+            else:
+                print("more then one circle found")
+        else:
+            print("no circles Found")
+
+
+    def reduce_to_circle(self, circles):
+        for circle in circles[0, : ]:
+            # center of the circle
+            center = (circle[0], circle[1])
+            # radius of the circle - 30 to avoid inconsistency around the edges
+            radius = circle[2]-30
+            # mask to remove everything except the circle
+            mask = np.zeros_like(self.rgb_image)
+            cv2.circle(mask, center, radius, (255, 255, 255), -1)
+            reduced_to_circle = cv2.bitwise_and(self.rgb_image, mask)
+            cv2.imshow("window", reduced_to_circle)
+            return reduced_to_circle
+
+
+
+

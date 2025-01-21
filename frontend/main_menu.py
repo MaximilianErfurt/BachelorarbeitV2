@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QWidget, QMainWindow, QPushButton, QLabel, QGridLayo
 import sys
 from backend.mono_camera import MonoCamera
 from backend.stereo_camera import StereoCamera
+from start_gui import StartGUI
 from extrinsic_calibration_gui import ExtrinsicCalibrationGUI
 from intrinsic_calibration_gui import IntrinsicCalibrationGUI
 class MainMenu(QWidget):
@@ -15,6 +16,7 @@ class MainMenu(QWidget):
         self.extrinsic_calibration_window_right = None
         self.intrinsic_calibration_window_left = None
         self.intrinsic_calibration_window_right = None
+        self.start_window = None
 
         # Add Labels
         self.left_camera_label = QLabel("Mono Kamera Links", self)
@@ -78,7 +80,8 @@ class MainMenu(QWidget):
 
 
     def call_start(self):
-        pass
+        self.start_window = StartGUI(self, self.stereo_cam)
+        self.start_window.exec()
 
     def hide_window(self):
         """

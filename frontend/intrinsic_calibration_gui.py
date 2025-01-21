@@ -8,7 +8,7 @@ import sys
 import threading
 from backend.image import Image
 import cv2
-from helper import grey_to_QImage
+from helper import image_to_QImage
 
 
 class IntrinsicCalibrationGUI(QDialog):
@@ -63,7 +63,7 @@ class IntrinsicCalibrationGUI(QDialog):
             # try to get the image from according cam
             image = self.mono_cam.intrinsic_images[self.next_counter].cb_image
             # convert grey image to qimage
-            qimage = grey_to_QImage(image)
+            qimage = image_to_QImage(image)
             # put image into the QLabel
             pixmap = QPixmap.fromImage(qimage)  # convert image in pixmap
             self.image_label.setPixmap(pixmap)  # put pixmap on label

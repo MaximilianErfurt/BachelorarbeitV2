@@ -5,14 +5,14 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
-def grey_to_QImage(image):
-    # convert to rgb
-    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
+def image_to_QImage(image):
+    # check if image is gray
+    if len(image.shape)==2:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # make QImage from rgb image
-    height, width, channels = rgb_image.shape
+    height, width, channels = image.shape
     bytes_per_line = channels * width
-    qimage = QImage(rgb_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+    qimage = QImage(image.data, width, height, bytes_per_line, QImage.Format_RGB888)
     return qimage
 
 def pose_to_transformation_matrix(pose):
@@ -189,6 +189,11 @@ def calc_hand_eye_transformation(f_T_fs, c_T_cs):
         ]
     )
     return c_T_f
+
+def grey_to_rgb(image):
+    return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+
 
 if __name__ == "__main__":
         pass
