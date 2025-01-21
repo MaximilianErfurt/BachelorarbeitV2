@@ -8,8 +8,8 @@ class Image:
 
         # param for blossom finding
         self.cropped_image = image[:, 200:1000]
-        self.rgb_image = cv2.cvtColor(self.cropped_image, cv2.COLOR_GRAY2BGR)
-        self.circle_image = self.rgb_image.copy()
+        self.rgb_cropped_image = cv2.cvtColor(self.cropped_image, cv2.COLOR_GRAY2BGR)
+        self.apple_marked_image = self.rgb_cropped_image.copy()
 
         # param for calibration
         self.cb_image = image
@@ -46,44 +46,60 @@ class Image:
         find the Blossom in the image
         :return:
         """
-        # find the apple via hough circles
-        circles = self.find_circles()
-        cv2.imshow("window",self.circle_image)
-        reduced_to_circle  =self.reduce_to_circle(circles)
+        apples = self.find_apple()
+        if len(apples) > 1:
+            print("apple not precisely found to many circles")
+            return
+        apple = apples[0]
+        apple_reduced_image = self.reduce_to_apple(apple)
 
 
-    def find_circles(self):
-        circles = cv2.HoughCircles(cv2.GaussianBlur(
-            self.cropped_image, (3, 3), 0), cv2.HOUGH_GRADIENT, 1, 300, param1=80, param2=20, minRadius=20,
-            maxRadius=200  #
-        )
+
+    def find_apple(self):
+        """
+        find the apple with hough circle transformation
+        :return:
+        """
+        # gausian blured image
+        gausian_blured_image = cv2.GaussianBlur(self.cropped_image, (3,3), 0)
+        # find circles
+        circles = cv2.HoughCircles(gausian_blured_image, cv2.HOUGH_GRADIENT, 1, 300, param1=80, param2=20, minRadius=20, maxRadius=200)
+        # draw circle into an image and show it in cv2 only necessary for debugging can be commented out in normal use
         if circles is not None:
-            if len(circles) == 1:
-                circles = np.uint16(np.around(circles))
-                for circle in circles[0, :]:
-                    # draw outer circle
-                    cv2.circle(self.circle_image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
-                    # draw center
-                    cv2.circle(self.circle_image, (circle[0], circle[1]), circle[2], (0, 0, 255), 3)
-                return circles
-            else:
-                print("more then one circle found")
+            circles = np.uint16(np.around(circles))
+            for circle in circles[0, :]:
+                # draw outline
+                cv2.circle(self.apple_marked_image, (circle[0], circle[1]), circle[2], (0, 255, 0), 2)
+                # draw center
+                cv2.circle(self.apple_marked_image, (circle[0], circle[1]), 2, (0, 0, 255), 3)
+                cv2.imshow("apple marked", self.apple_marked_image)
+                cv2.waitKey(0)
+            return circles[0,:]
         else:
-            print("no circles Found")
+            print("no apple found")
+            return circles
+
+    def reduce_to_apple(self, apple):
+        center = (apple[0], apple[1])
+        radius = apple[2]-30
+        mask = np.zeros_like(self.rgb_cropped_image)
+        cv2.circle(mask, center, radius, (255, 255, 255), -1)
+        reduced_to_apple_image = cv2.bitwise_and(self.rgb_cropped_image, mask)
+        cv2.imshow("reduced to apple",reduced_to_apple_image)
+        cv2.waitKey(0)
+        return reduced_to_apple_image
+
+    def find_edges_with_canny_edge(self):
+        pass
 
 
-    def reduce_to_circle(self, circles):
-        for circle in circles[0, : ]:
-            # center of the circle
-            center = (circle[0], circle[1])
-            # radius of the circle - 30 to avoid inconsistency around the edges
-            radius = circle[2]-30
-            # mask to remove everything except the circle
-            mask = np.zeros_like(self.rgb_image)
-            cv2.circle(mask, center, radius, (255, 255, 255), -1)
-            reduced_to_circle = cv2.bitwise_and(self.rgb_image, mask)
-            cv2.imshow("window", reduced_to_circle)
-            return reduced_to_circle
+
+
+
+
+
+
+
 
 
 

@@ -49,6 +49,10 @@ class StartGUI(QDialog):
 
 
     def call_take_images_button(self):
+        # deactivate image taking button to avoid multiple streams to the camera
+        # gets activated in update image label after the thread has finished
+        self.take_images_button.setEnabled(False)
+        # start threads to take the images and update the label to show them in the gui
         self.image_taking_thread = threading.Thread(target=self.stereo_cam.take_mono_images)
         self.image_taking_thread.start()
         self.update_label_thread = threading.Thread(target=self.update_image_label_not_processed)
@@ -57,7 +61,7 @@ class StartGUI(QDialog):
         self.processing_button = QPushButton("Finde Ausstechpunkt")
         self.processing_button.clicked.connect(self.call_processing_button)
         self.layout.addWidget(self.processing_button, 1,1)
-        self.showMaximized()
+        #self.showMaximized()
         self.update()
 
     def call_processing_button(self):
@@ -66,6 +70,9 @@ class StartGUI(QDialog):
     def update_image_label_not_processed(self):
         # wait for image taking thread to finish
         self.image_taking_thread.join()
+
+        # activate the image taking button again to allow taking the images again
+        self.take_images_button.setEnabled(True)
 
         # get the taken images
         image_left = self.stereo_cam.image_left.cropped_image
