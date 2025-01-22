@@ -205,8 +205,6 @@ def dbscan_clustering(image):
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     print(f"Anzahl der Cluster: {n_clusters}")
 
-    # Ergebnisse visualisieren
-    output_image = np.zeros_like(image)
     unique_labels = set(labels)
 
     centers = []
@@ -214,8 +212,6 @@ def dbscan_clustering(image):
         if label == -1:
             # ignore noise
             continue
-        # Alle Pixel des Clusters einfärben
-        #output_image[tuple(coords[labels == label].T)] = int(255 / (n_clusters + 1) * (label + 1))
         label_coords = coords[labels == label]
         x_mean = np.mean(label_coords[:, 0])
         y_mean = np.mean(label_coords[:, 1])
