@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy.spatial import distance_matrix
+from helper import  dbscan_clustering
 class Image:
     def __init__(self, name, image):
         self.name = name
@@ -9,7 +10,12 @@ class Image:
         # param for blossom finding
         self.cropped_image = image[:, 200:1000]
         self.rgb_cropped_image = cv2.cvtColor(self.cropped_image, cv2.COLOR_GRAY2BGR)
+        self.rgb_center_marked_image = self.rgb_cropped_image.copy()
         self.apple_marked_image = self.rgb_cropped_image.copy()
+        self.apple_reduced_rgb_image = None
+        self.edges_image = None
+        self.no_exterior_edges = None
+        self.centers = None
 
         # param for calibration
         self.cb_image = image
@@ -51,9 +57,19 @@ class Image:
             print("apple not precisely found to many circles")
             return
         apple = apples[0]
-        apple_reduced_image = self.reduce_to_apple(apple)
-
-
+        self.reduce_rgb_to_apple(apple)
+        self.find_edges_with_canny_edge()
+        self.remove_exterior_edges(apple)
+        contours = self.find_contours()
+        finished_image = self.remove_contours(300, contours)
+        points = np.argwhere(finished_image == 255)
+        if points.size == 0:
+            print("No Blossom found")
+            return
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        self.centers = dbscan_clustering(finished_image)
+        self.mark_center_on_rgb_image()
 
     def find_apple(self):
         """
@@ -79,18 +95,58 @@ class Image:
             print("no apple found")
             return circles
 
-    def reduce_to_apple(self, apple):
+    def reduce_rgb_to_apple(self, apple):
         center = (apple[0], apple[1])
-        radius = apple[2]-30
+        radius = apple[2]
         mask = np.zeros_like(self.rgb_cropped_image)
         cv2.circle(mask, center, radius, (255, 255, 255), -1)
-        reduced_to_apple_image = cv2.bitwise_and(self.rgb_cropped_image, mask)
-        cv2.imshow("reduced to apple",reduced_to_apple_image)
+        self.apple_reduced_rgb_image= cv2.bitwise_and(self.rgb_cropped_image, mask)
+        cv2.imshow("reduced to apple",self.apple_reduced_rgb_image)
         cv2.waitKey(0)
-        return reduced_to_apple_image
 
     def find_edges_with_canny_edge(self):
-        pass
+        median_blur = cv2.medianBlur(self.apple_reduced_rgb_image, 3)
+        canny_edges = cv2.Canny(median_blur, 70, 120)
+        cv2.imshow("canny edges",canny_edges)
+        cv2.waitKey(0)
+        self.edges_image = canny_edges
+
+
+    def remove_exterior_edges(self, apple):
+        center = (apple[0], apple[1])
+        radius = apple[2]-30
+        mask = np.zeros_like(self.cropped_image, dtype=np.uint8)
+        cv2.circle(mask, center, radius, 255, -1)
+        self.no_exterior_edges = cv2.bitwise_and(self.edges_image, mask)
+        cv2.imshow("no exterior edges", self.no_exterior_edges)
+        cv2.waitKey(0)
+
+    def find_contours(self):
+        # find contours
+        countours, _ = cv2.findContours(self.no_exterior_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        return countours
+
+    def remove_contours(self, length, contours):
+        cleared_image = self.no_exterior_edges.copy()
+        for contour in contours:
+            perimeter = cv2.arcLength(contour, False)
+            if perimeter > length:
+                cv2.drawContours(cleared_image, [contour], 0, (0,0,0), -1)
+        cv2.imshow("cleared image", cleared_image)
+        cv2.waitKey(0)
+        return cleared_image
+
+    def mark_center_on_rgb_image(self):
+        for center in self.centers:
+            self.rgb_center_marked_image[round(center[0]),round(center[1])] = (0,255,0)
+        cv2.imshow("finished", self.rgb_center_marked_image)
+        cv2.waitKey(0)
+
+
+
+
+
+
 
 
 

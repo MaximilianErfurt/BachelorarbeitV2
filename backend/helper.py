@@ -3,6 +3,7 @@ import scipy.linalg
 from PyQt5.QtGui import QImage
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from sklearn.cluster import DBSCAN
 
 
 def image_to_QImage(image):
@@ -192,6 +193,43 @@ def calc_hand_eye_transformation(f_T_fs, c_T_cs):
 
 def grey_to_rgb(image):
     return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+def dbscan_clustering(image):
+    # extract white pixels
+    coords = np.column_stack(np.where(image>127))
+
+    # execute DBSCAN
+    dbscan = DBSCAN(eps = 5, min_samples=5)
+    labels = dbscan.fit_predict(coords)
+
+    n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+    print(f"Anzahl der Cluster: {n_clusters}")
+
+    # Ergebnisse visualisieren
+    output_image = np.zeros_like(image)
+    unique_labels = set(labels)
+
+    centers = []
+    for label in unique_labels:
+        if label == -1:
+            # ignore noise
+            continue
+        # Alle Pixel des Clusters einfärben
+        #output_image[tuple(coords[labels == label].T)] = int(255 / (n_clusters + 1) * (label + 1))
+        label_coords = coords[labels == label]
+        x_mean = np.mean(label_coords[:, 0])
+        y_mean = np.mean(label_coords[:, 1])
+        centers.append((x_mean, y_mean))
+        print (x_mean, y_mean)
+    return centers
+
+
+
+
+
+
+
+
 
 
 

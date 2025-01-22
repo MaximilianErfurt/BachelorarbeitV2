@@ -59,6 +59,7 @@ class StartGUI(QDialog):
         self.update_label_thread.start()
         # add the processing button
         self.processing_button = QPushButton("Finde Ausstechpunkt")
+        self.processing_button.setEnabled(False)
         self.processing_button.clicked.connect(self.call_processing_button)
         self.layout.addWidget(self.processing_button, 1,1)
         #self.showMaximized()
@@ -71,8 +72,9 @@ class StartGUI(QDialog):
         # wait for image taking thread to finish
         self.image_taking_thread.join()
 
-        # activate the image taking button again to allow taking the images again
+        # activate the image taking button and the start process button again to allow taking the images again
         self.take_images_button.setEnabled(True)
+        self.processing_button.setEnabled(True)
 
         # get the taken images
         image_left = self.stereo_cam.image_left.cropped_image
