@@ -46,7 +46,6 @@ def r_vec_to_r_mat(r_vec):
     r_mat = rotation.as_matrix()
     return r_mat
 
-
 def rvec_to_rmat(rvec):
     """
     transforms rotational vector to rotational matrix
@@ -89,7 +88,6 @@ def t_in_R_and_v(t_mat):
         ]
     )
     return f_R_f, v_f_f
-
 
 def r_mat_and_t_vec_to_t_mat(r_mat, t_vec):
     """
