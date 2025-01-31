@@ -1,3 +1,5 @@
+import threading
+
 from mono_camera import MonoCamera
 from image import Image
 class StereoCamera:
@@ -17,5 +19,13 @@ class StereoCamera:
 
 
     def find_cut_out_point(self):
-        self.image_left.find_blossom()
-        self.image_right.find_blossom()
+        # def threads
+        left_thread = threading.Thread(target=self.image_left.find_apples)
+        right_thread = threading.Thread(target=self.image_right.find_apples)
+        # start threads
+        left_thread.start()
+        right_thread.start()
+        # wait for threads to finish
+        left_thread.join()
+        right_thread.join()
+

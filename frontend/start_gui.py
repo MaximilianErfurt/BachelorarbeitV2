@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QDialog
 from PyQt5.QtCore import Qt
 from Tools.scripts.generate_sre_constants import update_file
+from seaborn import jointplot
+
 from helper import image_to_QImage
 from PyQt5.QtGui import QPixmap
 
@@ -18,6 +20,7 @@ class StartGUI(QDialog):
         # threads
         self.image_taking_thread = None
         self.update_label_thread = None
+        self.processing_thread = None
         
         
         # def labels
@@ -66,19 +69,22 @@ class StartGUI(QDialog):
         self.update()
 
     def call_processing_button(self):
-        self.stereo_cam.find_cut_out_point()
+        # deactivate the buttons during processing
+        self.processing_button.setEnabled(False)
+        self.take_images_button.setEnabled(False)
+        # start threads for processing and
+        self.processing_thread = threading.Thread(target=self.stereo_cam.find_cut_out_point)
+        self.processing_thread.start()
+        self.update_label_thread = threading.Thread(target=self.update_image_label_processed)
+        self.update_label_thread.start()
         
     def update_image_label_not_processed(self):
         # wait for image taking thread to finish
         self.image_taking_thread.join()
 
-        # activate the image taking button and the start process button again to allow taking the images again
-        self.take_images_button.setEnabled(True)
-        self.processing_button.setEnabled(True)
-
         # get the taken images
-        image_left = self.stereo_cam.image_left.cropped_image
-        image_right = self.stereo_cam.image_right.cropped_image
+        image_left = self.stereo_cam.image_left.rgb_image
+        image_right = self.stereo_cam.image_right.rgb_image
 
         # convert left image to qimage
         qimage_left = image_to_QImage(image_left)
@@ -94,8 +100,36 @@ class StartGUI(QDialog):
         self.image_label_right.setPixmap(pixmap_right)  # put pixmpat on label
         self.image_label_right.setScaledContents(True)
 
+        # activate the image taking button and the start process button again to allow taking the images again
+        self.take_images_button.setEnabled(True)
+        self.processing_button.setEnabled(True)
+
     def update_image_label_processed(self):
-        pass
+        # wait for processing to finish
+        self.processing_thread.join()
+
+        # get the taken images
+        image_left = self.stereo_cam.image_left.rgb_image
+        image_right = self.stereo_cam.image_right.rgb_image
+
+        # convert left image to qimage
+        qimage_left = image_to_QImage(image_left)
+        # put left image into the QLabel
+        pixmap_left = QPixmap.fromImage(qimage_left)  # convert qimage to pixmap
+        self.image_label_left.setPixmap(pixmap_left)  # put pixmap on label
+        self.image_label_left.setScaledContents(True)  # scale image to fit in label
+
+        # convert right image to qimage
+        qimage_right = image_to_QImage(image_right)
+        # put right image into the QLabel
+        pixmap_right = QPixmap.fromImage(qimage_right)  # convert qimage to pixmap
+        self.image_label_right.setPixmap(pixmap_right)  # put pixmpat on label
+        self.image_label_right.setScaledContents(True)
+
+        # activate the image taking button and the start process button again to allow taking the images again
+        self.take_images_button.setEnabled(True)
+        self.processing_button.setEnabled(True)
+
 
 
 

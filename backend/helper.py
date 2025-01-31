@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation as R
 from sklearn.cluster import DBSCAN
 
 
+
 def image_to_QImage(image):
     # check if image is gray
     if len(image.shape)==2:
@@ -197,7 +198,7 @@ def dbscan_clustering(image):
     coords = np.column_stack(np.where(image>127))
 
     # execute DBSCAN
-    dbscan = DBSCAN(eps = 5, min_samples=5)
+    dbscan = DBSCAN(eps = 7, min_samples=20)
     labels = dbscan.fit_predict(coords)
 
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
@@ -211,21 +212,11 @@ def dbscan_clustering(image):
             # ignore noise
             continue
         label_coords = coords[labels == label]
+        size = len(label_coords)
         x_mean = np.mean(label_coords[:, 0])
         y_mean = np.mean(label_coords[:, 1])
-        centers.append((x_mean, y_mean))
-        print (x_mean, y_mean)
+        centers.append((x_mean, y_mean, size))
+        print (x_mean, y_mean, size)
     return centers
 
 
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-        pass
