@@ -218,9 +218,6 @@ class Apple:
             max_index = np.where(classify == np.max(classify))[0][0]
             return self.centers[max_index]
 
-    def penis(self):
-        pass
-
 
 
 
