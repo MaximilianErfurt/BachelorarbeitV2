@@ -1,4 +1,5 @@
 import threading
+import depthai as dai
 
 from mono_camera import MonoCamera
 from image import Image
@@ -9,13 +10,72 @@ class StereoCamera:
         self.image_left = None
         self.image_right = None
 
+        # stereo calibration
+        self.calibration_images_left = []
+        self.calibration_images_right = []
+
+    def stereo_calibration(self):
+        pass
+
+    def take_stereo_calibration_images(self, counter):
+        left_image, right_image = self.take_synced_images()
+        left_image = Image("left", left_image)
+        right_image = Image("right", right_image)
+        ret_left = left_image.find_chessboard()
+        ret_right = right_image.find_chessboard()
+        if not ret_left and not ret_right:
+            print("no Checkerboard")
+        if len(self.calibration_images_right) > counter and len(self.calibration_images_left) > counter:
+            self.calibration_images_left[counter] = left_image
+            self.calibration_images_right[counter] = right_image
+            print("replaced")
+        else:
+            self.calibration_images_left.append(left_image)
+            self.calibration_images_right.append(right_image)
+            print("appended")
+
+    def take_synced_images(self):
+        """
+                Take images from both cameras
+                :return: left image, right image
+                """
+        pipeline = dai.Pipeline()
+        # left camera
+        cam_left = pipeline.createMonoCamera()
+        cam_left.setBoardSocket(self.camera_left.socket)
+        cam_left.setResolution(self.camera_left.resolution)
+        cam_left.initialControl.setManualExposure(self.camera_left.exposure, self.camera_left.iso)
+
+        # right camera
+        cam_right = pipeline.createMonoCamera()
+        cam_right.setBoardSocket(self.camera_right.socket)
+        cam_right.setResolution(self.camera_right.resolution)
+        cam_right.initialControl.setManualExposure(self.camera_right.exposure, self.camera_right.iso)
+
+        # stream cam left
+        left_out = pipeline.createXLinkOut()
+        left_out.setStreamName("left_out")
+        cam_left.out.link(left_out.input)
+
+        # stream cam right
+        right_out = pipeline.createXLinkOut()
+        right_out.setStreamName("right_out")
+        cam_right.out.link(right_out.input)
+
+        with dai.Device(pipeline) as device:
+            left_image = device.getOutputQueue(name="left_out", maxSize=1, blocking=True).get().getCvFrame()
+            right_image = device.getOutputQueue(name="right_out", maxSize=1, blocking=True).get().getCvFrame()
+            return left_image, right_image
+
     def take_mono_images(self):
         """
         take the images for blossom finding
         :return:
         """
-        self.image_left = Image("left_image", self.camera_left.take_single_image())
-        self.image_right = Image("right_image", self.camera_right.take_single_image())
+        image_left, image_right = self.take_synced_images()
+        self.image_left = Image("left_image", image_left)
+        self.image_right = Image("right_image", image_right)
+
 
 
     def find_cut_out_point(self):
@@ -28,4 +88,5 @@ class StereoCamera:
         # wait for threads to finish
         left_thread.join()
         right_thread.join()
+
 

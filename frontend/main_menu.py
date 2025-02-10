@@ -7,6 +7,7 @@ from backend.stereo_camera import StereoCamera
 from start_gui import StartGUI
 from extrinsic_calibration_gui import ExtrinsicCalibrationGUI
 from intrinsic_calibration_gui import IntrinsicCalibrationGUI
+from stereo_calibration_gui import StereoCalibrationGUI
 class MainMenu(QWidget):
     def __init__(self, stereo_cam: StereoCamera):
         super().__init__()
@@ -17,6 +18,7 @@ class MainMenu(QWidget):
         self.intrinsic_calibration_window_left = None
         self.intrinsic_calibration_window_right = None
         self.start_window = None
+        self.stereo_calibration_window = None
 
         # Add Labels
         self.left_camera_label = QLabel("Mono Kamera Links", self)
@@ -32,9 +34,11 @@ class MainMenu(QWidget):
         self.button_right_camera_extrinsic = QPushButton("Extrinsische Kalibrierung")
         self.button_left_camera_extrinsic = QPushButton("Extrinische Kalibrierung")
         self.button_find_core = QPushButton("Start")
+        self.stereo_calibration_button = QPushButton("Stereo Kalibrierung")
 
         # connect Signals
         self.button_find_core.clicked.connect(self.call_start)
+        self.stereo_calibration_button.clicked.connect(self.call_stereo_calibration)
 
         self.button_left_camera_intrinsic.clicked.connect(self.call_intrinsic_calibration_left)
         self.button_left_camera_extrinsic.clicked.connect(self.call_extrinsic_calibration_left)
@@ -46,7 +50,8 @@ class MainMenu(QWidget):
         layout = QGridLayout()
 
         # add Widgets
-        layout.addWidget(self.button_find_core, 0, 1)
+        layout.addWidget(self.button_find_core, 1, 1)
+        layout.addWidget(self.stereo_calibration_button, 2,1)
 
         layout.addWidget(self.left_camera_label, 1, 0)
         layout.addWidget(self.button_left_camera_intrinsic, 2, 0)
@@ -82,6 +87,10 @@ class MainMenu(QWidget):
     def call_start(self):
         self.start_window = StartGUI(self, self.stereo_cam)
         self.start_window.exec()
+
+    def call_stereo_calibration(self):
+        self.stereo_calibration_window = StereoCalibrationGUI(self, self.stereo_cam)
+        self.stereo_calibration_window.exec()
 
     def hide_window(self):
         """

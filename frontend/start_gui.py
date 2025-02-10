@@ -47,7 +47,7 @@ class StartGUI(QDialog):
         self.layout.addWidget(self.image_label_right,2, 2)
 
         self.setLayout(self.layout)
-        self.setWindowTitle("Test")
+        self.setWindowTitle("Processing")
 
 
 

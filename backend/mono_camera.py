@@ -1,16 +1,8 @@
-from pathlib import Path
+
 import cv2
 import depthai as dai
 import numpy as np
-import glob
 import json
-import tkinter as tk
-import threading
-import time
-from frontend.extrinsic_calibration_gui import ExtrinsicCalibrationGUI
-from frontend.error_gui import ErrorWindow
-from PyQt5.QtWidgets import QWidget, QMainWindow, QPushButton, QLabel, QGridLayout, QApplication
-import sys
 from image import Image
 from helper import pose_to_transformation_matrix
 from helper import r_vec_to_r_mat
@@ -151,6 +143,7 @@ class MonoCamera:
 
         ret, self.camera_matrix, self.distortion_coefficients, _, _ = cv2.calibrateCamera(objpoints, imgpoints, self.intrinsic_images[0].image.shape[::-1], None, None)
         print(self.camera_matrix)
+
     def save_camera_config(self):
         """
         save camera config
