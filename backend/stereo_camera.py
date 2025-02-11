@@ -1,4 +1,6 @@
 import threading
+
+import cv2
 import depthai as dai
 
 from mono_camera import MonoCamera
@@ -15,7 +17,19 @@ class StereoCamera:
         self.calibration_images_right = []
 
     def stereo_calibration(self):
-        pass
+        imgp_left = []
+        imgp_right = []
+        objps = []
+
+        for i in range(len(self.calibration_images_left)):
+            imgp_left.append(self.calibration_images_left[i].imgp)
+            imgp_right.append(self.calibration_images_right[i].imgp)
+            objps.append(self.calibration_images_left[i].objp)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+        ret, CM1, dist1, CM2, dist2, R, T, E, F = cv2.stereoCalibrate(objps, imgp_left, imgp_right, self.camera_left.camera_matrix, self.camera_left.distortion_coefficients,
+                                                                      self.camera_right.camera_matrix, self.camera_right.distortion_coefficients, self.calibration_images_left[0].image.shape,
+                                                                      criteria = criteria, flags = cv2.CALIB_FIX_INTRINSIC)
+        print(R)
 
     def take_stereo_calibration_images(self, counter):
         left_image, right_image = self.take_synced_images()

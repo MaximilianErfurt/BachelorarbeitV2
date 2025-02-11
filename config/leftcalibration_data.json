@@ -1,1 +1,1 @@
-{"camera_matrix": [0.0, 0.0, 0.0, 0.0, 0.0], "distortion_coefficients": [0.0, 0.0, 0.0, 0.0, 0.0], "iso": 100, "exposure": 2000, "intrinsic_status": false, "extrinsic_status": false}
+{"camera_matrix": [[819.2995706683876, 0.0, 665.4090796010272], [0.0, 814.5174221248764, 353.4658738290661], [0.0, 0.0, 1.0]], "distortion_coefficients": [[0.07407087074679834, -0.2640880288736204, 0.003915264554026675, -0.005117194726653536, 0.25894543678474824]], "iso": 100, "exposure": 2000, "intrinsic_status": true, "extrinsic_status": false}

@@ -143,6 +143,9 @@ class MonoCamera:
 
         ret, self.camera_matrix, self.distortion_coefficients, _, _ = cv2.calibrateCamera(objpoints, imgpoints, self.intrinsic_images[0].image.shape[::-1], None, None)
         print(self.camera_matrix)
+        self.intrinsic_calibrated = True
+        self.save_camera_config()
+
 
     def save_camera_config(self):
         """
@@ -170,7 +173,7 @@ class MonoCamera:
                 data = json.load(file)
 
                 self.camera_matrix = np.array(data["camera_matrix"])
-                self.camera_matrix = np.array(data["distortion_coefficients"])
+                self.distortion_coefficients = np.array(data["distortion_coefficients"])
                 self.iso = data["iso"]
                 self.exposure = data["exposure"]
                 self.intrinsic_calibrated = data["intrinsic_status"]
