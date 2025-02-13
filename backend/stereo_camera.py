@@ -1,12 +1,14 @@
 import threading
-
+import json
 import cv2
 import depthai as dai
+import numpy as np
 
 from mono_camera import MonoCamera
 from image import Image
 class StereoCamera:
-    def __init__(self, camera_left:MonoCamera, camera_right:MonoCamera):
+    def __init__(self,camera_left:MonoCamera, camera_right:MonoCamera, name = "stereo_camera"):
+        self.name = name
         self.camera_left = camera_left
         self.camera_right = camera_right
         self.image_left = None
@@ -15,21 +17,38 @@ class StereoCamera:
         # stereo calibration
         self.calibration_images_left = []
         self.calibration_images_right = []
+        self.base_line = 75
+        self.cl_R_cr = None
+        self.cl_T_cr = None
+        self.load_camera_config()
 
     def stereo_calibration(self):
+        """
+        calibrate the stereo camera
+        get rotational matrix, translation vektor and length of the baseline from camera_left to camera_right
+        :return:
+        """
         imgp_left = []
         imgp_right = []
         objps = []
-
+        # add all the imgp and objp to the arrays
         for i in range(len(self.calibration_images_left)):
             imgp_left.append(self.calibration_images_left[i].imgp)
             imgp_right.append(self.calibration_images_right[i].imgp)
             objps.append(self.calibration_images_left[i].objp)
+        # calibrate the stereo camera
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
-        ret, CM1, dist1, CM2, dist2, R, T, E, F = cv2.stereoCalibrate(objps, imgp_left, imgp_right, self.camera_left.camera_matrix, self.camera_left.distortion_coefficients,
+        ret, CM1, dist1, CM2, dist2, self.cl_R_cr, self.cl_T_cr, E, F = cv2.stereoCalibrate(objps, imgp_left, imgp_right, self.camera_left.camera_matrix, self.camera_left.distortion_coefficients,
                                                                       self.camera_right.camera_matrix, self.camera_right.distortion_coefficients, self.calibration_images_left[0].image.shape,
                                                                       criteria = criteria, flags = cv2.CALIB_FIX_INTRINSIC)
-        print(R)
+        # update camera parameters
+        self.camera_left.camera_matrix = CM1
+        self.camera_left.distortion_coefficients = dist1
+        self.camera_right.camera_matrix = CM2
+        self.camera_right.distortion_coefficients = dist2
+
+        self.base_line = np.linalg.norm(self.cl_T_cr)
+        self.save_camera_config()
 
     def take_stereo_calibration_images(self, counter):
         left_image, right_image = self.take_synced_images()
@@ -87,10 +106,45 @@ class StereoCamera:
         :return:
         """
         image_left, image_right = self.take_synced_images()
+        image_left, image_right = self.rectify_images(image_left, image_right)
         self.image_left = Image("left_image", image_left)
         self.image_right = Image("right_image", image_right)
 
 
+    def rectify_images(self, image_left, image_right):
+        image_size = image_left.shape
+        image_size = (int(image_size[1]), int(image_size[0]))
+        cameraMatrix_left = self.camera_left.camera_matrix
+        cameraMatrix_right = self.camera_right.camera_matrix
+        distCoeffs_left = self.camera_left.distortion_coefficients.flatten().reshape(5,1)
+        distCoeffs_right = self.camera_right.distortion_coefficients.flatten().reshape(5,1)
+        # calculate rectification
+        R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(cameraMatrix_left, distCoeffs_left,
+                                                    cameraMatrix_right, distCoeffs_right,
+                                                    image_size, self.cl_R_cr, self.cl_T_cr)
+        # calculate rectification mapping
+        map_left_x, map_left_y = cv2.initUndistortRectifyMap(cameraMatrix_left, distCoeffs_left, R1, P1, image_size, cv2.CV_32FC1)
+        map_right_x, map_right_y = cv2.initUndistortRectifyMap(cameraMatrix_right, distCoeffs_right, R2, P2, image_size, cv2.CV_32FC1)
+        # rectify images
+        rect_left = cv2.remap(image_left, map_left_x, map_left_y, cv2.INTER_LINEAR)
+        rect_right = cv2.remap(image_right, map_right_x, map_right_y, cv2.INTER_LINEAR)
+        return rect_left, rect_right
+
+    def calculate_depth(self):
+        x2y2 = self.image_right.apples[0].get_image_coordinate()
+        x2 = x2y2[1]
+        x1y1 = self.image_left.apples[0].get_image_coordinate()
+        x1 = x1y1[1]
+        # transform right image coordinates into the coordinate system of camera_left
+        lambda_x_1 = self.camera_left.camera_matrix[0][0]
+        lambda_x_2 = self.camera_right.camera_matrix[0][0]
+        # scale right image to same focal length
+        x2_I = x2 * (lambda_x_1/lambda_x_2)
+        d = x1 - x2_I
+        print(d)
+        Z = lambda_x_1*(self.base_line/d)
+        print(Z)
+        return Z
 
     def find_cut_out_point(self):
         # def threads
@@ -102,5 +156,36 @@ class StereoCamera:
         # wait for threads to finish
         left_thread.join()
         right_thread.join()
+        self.calculate_depth()
+
+
+    def save_camera_config(self):
+        """
+        save camera config
+        :return:
+        """
+        data = {
+            "cl_R_cr": self.cl_R_cr.tolist(),
+            "cl_T_cr": self.cl_T_cr.tolist(),
+            "base_line": self.base_line,
+
+        }
+        with open("config/" + self.name + "calibration_data.json", "w") as file:
+            json.dump(data, file)
+
+    def load_camera_config(self):
+        """
+        load camera config
+        :return:
+        """
+        try:
+            with open("config/" + self.name + "calibration_data.json", "r") as file:
+                data = json.load(file)
+
+                self.cl_R_cr = np.array(data["cl_R_cr"])
+                self.cl_T_cr = np.array(data["cl_T_cr"])
+                self.base_line = data["base_line"]
+        except FileNotFoundError:
+            print("camera config not found")
 
 
