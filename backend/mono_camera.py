@@ -146,7 +146,6 @@ class MonoCamera:
         self.intrinsic_calibrated = True
         self.save_camera_config()
 
-
     def save_camera_config(self):
         """
         save camera config

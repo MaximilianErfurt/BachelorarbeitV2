@@ -50,7 +50,6 @@ class StartGUI(QDialog):
         self.setWindowTitle("Processing")
 
 
-
     def call_take_images_button(self):
         # deactivate image taking button to avoid multiple streams to the camera
         # gets activated in update image label after the thread has finished

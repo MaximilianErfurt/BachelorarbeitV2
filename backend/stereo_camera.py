@@ -110,7 +110,6 @@ class StereoCamera:
         self.image_left = Image("left_image", image_left)
         self.image_right = Image("right_image", image_right)
 
-
     def rectify_images(self, image_left, image_right):
         image_size = image_left.shape
         image_size = (int(image_size[1]), int(image_size[0]))
@@ -158,7 +157,6 @@ class StereoCamera:
         right_thread.join()
         self.calculate_depth()
 
-
     def save_camera_config(self):
         """
         save camera config
@@ -187,5 +185,3 @@ class StereoCamera:
                 self.base_line = data["base_line"]
         except FileNotFoundError:
             print("camera config not found")
-
-
