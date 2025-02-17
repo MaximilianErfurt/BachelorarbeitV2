@@ -179,3 +179,4 @@ class MonoCamera:
                 self.extrinsic_calibrated = data["extrinsic_status"]
         except FileNotFoundError:
             print("camera config not found")
+

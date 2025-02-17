@@ -155,7 +155,21 @@ class StereoCamera:
         # wait for threads to finish
         left_thread.join()
         right_thread.join()
-        self.calculate_depth()
+        z = self.calculate_depth()
+        x, y = self.calculate_x_y(z)
+
+    def calculate_x_y(self, z):
+        x = 0
+        y = 0
+        P1 = self.image_left.apples[0].get_image_coordinate()
+        P1 = [P1[1], P1[0], 1]
+        mat = self.camera_left.camera_matrix
+        mat_inv = np.linalg.inv(mat)
+        [a, b, c] = mat_inv @ P1
+        x = a * z
+        y = b * z
+        print(x,y)
+        return x, y
 
     def save_camera_config(self):
         """

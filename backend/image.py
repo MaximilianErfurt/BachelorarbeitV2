@@ -70,9 +70,6 @@ class Image:
         #cv2.waitKey(0)
 
 
-
-
-
 class Apple:
     def __init__(self, orig_coords, image):
         self.orig_coords = orig_coords
