@@ -9,6 +9,7 @@ import threading
 from backend.image import Image
 import cv2
 from helper import image_to_QImage
+from helper import load_rob_poses
 
 class ExtrinsicCalibrationGUI(QDialog):
     def __init__(self, parent = None, mono_cam = None):
@@ -69,7 +70,7 @@ class ExtrinsicCalibrationGUI(QDialog):
         #self.setGeometry(100, 100, 400, 100)
 
     def take_image(self):
-        self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
+        self.image_taking_thread = threading.Thread(target = self.mono_cam.test_extrinsic_image, args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)
         self.image_getting_thread.start()
@@ -84,15 +85,11 @@ class ExtrinsicCalibrationGUI(QDialog):
             # put image into the QLabel
             pixmap = QPixmap.fromImage(qimage)      # convert image in pixmap
             self.image_label.setPixmap(pixmap)      # put pixmap on label
-            self.image_label.setScaledContents(True)# scale image to fit in label
+            self.image_label.setScaledContents(False)# scale image to fit in label
 
 
         except IndexError as e:
-            print("not available yet")
-            time.sleep(1)
-            self.update_image_label()
-
-        print("bild updated")
+            print("not available")
 
 
     def call_next_button(self):
@@ -103,6 +100,7 @@ class ExtrinsicCalibrationGUI(QDialog):
         a = self.a_text.text()
         b = self.b_text.text()
         c = self.c_text.text()
+        x,y,z,a,b,c = load_rob_poses(self.next_counter)
 
         # check for image
         try:
@@ -127,10 +125,11 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 2:
+        if self.next_counter == 10:
             self.next_button.setText("Finish")
-        if self.next_counter == 3:
-            self.mono_cam.extrinsic_calibration()
+        if self.next_counter == 11:
+            #self.mono_cam.extrinsic_calibration()
+            self.mono_cam.opencv_hand_eye_calibration()
             self.close()
         self.next_counter += 1
 

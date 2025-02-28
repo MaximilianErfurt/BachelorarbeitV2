@@ -3,6 +3,9 @@ import json
 import cv2
 import depthai as dai
 import numpy as np
+from rtde_control import RTDEControlInterface
+import socket
+import struct
 
 from mono_camera import MonoCamera
 from image import Image
@@ -21,6 +24,8 @@ class StereoCamera:
         self.cl_R_cr = None
         self.cl_T_cr = None
         self.load_camera_config()
+
+        self.p_tool = None  # found cut out point
 
     def stereo_calibration(self):
         """
@@ -157,6 +162,11 @@ class StereoCamera:
         right_thread.join()
         z = self.calculate_depth()
         x, y = self.calculate_x_y(z)
+        p_cam= [[x],
+                [y],
+                [z],
+                [1]]
+        self.transform_to_flange(p_cam)
 
     def calculate_x_y(self, z):
         x = 0
@@ -170,6 +180,33 @@ class StereoCamera:
         y = b * z
         print(x,y)
         return x, y
+
+    def transform_to_flange(self, p_cam):
+        p_flange = self.camera_left.eye_hand_matrix @ p_cam
+        print ("p_flange", p_flange)
+        p_tool = p_flange - [[0],
+                             [0],
+                             [-314.5],
+                             [0]]
+        return p_tool
+
+    def send_position_to_robot(self):
+
+        UR_IP = "192.168.1.2"
+        PORT = 30004
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(2)
+                s.connect((UR_IP, PORT))
+
+                data = struct.pack("fff", self.p_tool[0], self.p_tool[1], self.p_tool[2])
+                s.send(data)
+                s.close()
+            print("position sent")
+        except socket.timeout:
+            print("Timeout: robot not responding")
+        except socket.error as e:
+            print(f"Keine Verbindung: {e}")
 
     def save_camera_config(self):
         """
@@ -199,3 +236,4 @@ class StereoCamera:
                 self.base_line = data["base_line"]
         except FileNotFoundError:
             print("camera config not found")
+

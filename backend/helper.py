@@ -4,6 +4,7 @@ from PyQt5.QtGui import QImage
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 from sklearn.cluster import DBSCAN
+import json
 
 
 
@@ -23,45 +24,26 @@ def pose_to_transformation_matrix(pose):
     :param pose: x,y,z,a,b,c
     :return: transformation matrix
     """
-    x = float(pose[0])
-    y = float(pose[1])
-    z = float(pose[2])
-    a = float(pose[3])
-    b = float(pose[4])
-    c = float(pose[5])
-    d11 = np.cos(a) * np.cos(b)
-    d12 = np.cos(a) * np.sin(b) * np.sin(c) - np.sin(a) * np.cos(c)
-    d13 = np.cos(a) * np.sin(b) * np.cos(c) + np.sin(a) * np.sin(c)
-    d21 = np.sin(a) * np.cos(b)
-    d22 = np.sin(a) * np.sin(b) * np.sin(c) + np.cos(a) * np.cos(c)
-    d23 = np.sin(a) * np.sin(b) * np.cos(c) - np.cos(a) * np.sin(c)
-    d31 = -np.sin(b)
-    d32 = np.cos(b) * np.sin(c)
-    d33 = np.cos(b) * np.cos(c)
-    transformation_matrix = [[d11, d12, d13, x], [d21, d22, d23, y], [d31, d32, d33, z], [0, 0, 0, 1]]
+    # get poses
+    x, y, z, rx, ry, rz = map(float, pose)
+
+    # transform euler angles to rotation matrix
+    rotation = R.from_euler("zyx", [rx, ry, rz])
+    r_mat = rotation.as_matrix()
+
+    # create 4x4 transformationmatrix
+    transformation_matrix = np.eye(4)
+    transformation_matrix[:3, :3] = r_mat
+    transformation_matrix[:3, 3] = [x, y, z]
+
     return transformation_matrix
 
 def r_vec_to_r_mat(r_vec):
     r_vec = r_vec.flatten()
-    rotation = R.from_rotvec(r_vec)
+    rotation = R.from_rotvec(rotvec=r_vec)
     r_mat = rotation.as_matrix()
     return r_mat
 
-def rvec_to_rmat(rvec):
-    """
-    transforms rotational vector to rotational matrix
-    :param rvec:
-    :return:
-    """
-    # normalized rvec
-    u = rvec / np.linalg.norm(rvec)
-    # rotation angle
-    theta = np.linalg.norm(rvec)
-    # cross product matrix
-    k = [[0.0, -u[2], u[1]], [u[2], 0, -u[0]], [-u[1], u[0], 0]]
-    # rotation matrix
-    r_mat = np.eye(3) + np.sin(theta) * k + (1 - np.cos(theta)) * np.dot(k, k)
-    return r_mat
 
 def r_mat_to_r_vec(r_mat):
     """
@@ -109,7 +91,7 @@ def calc_x_T_x(x_mats):
     :param x_mats:
     :return:
     """
-    x_T_x = [x_mats[0] * np.linalg.inv(x_mats[1]), x_mats[1] * np.linalg.inv(x_mats[2]), x_mats[2] * np.linalg.inv(x_mats[3])]
+    x_T_x = [x_mats[0] @ np.linalg.inv(x_mats[1]), x_mats[1] @ np.linalg.inv(x_mats[2]), x_mats[2] @ np.linalg.inv(x_mats[3])]
     return x_T_x
 
 def calc_hand_eye_transformation(f_T_fs, c_T_cs):
@@ -188,6 +170,7 @@ def calc_hand_eye_transformation(f_T_fs, c_T_cs):
             [0, 0, 0, 1]
         ]
     )
+    print("c_T_f",c_T_f)
     return c_T_f
 
 def grey_to_rgb(image):
@@ -218,5 +201,21 @@ def dbscan_clustering(image):
         centers.append((x_mean, y_mean, size))
         print (x_mean, y_mean, size)
     return centers
+
+def load_rob_poses(next_counter):
+    path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/rob_poses.json"
+    #path = "C:/Users/Stevi/Desktop/Bachelorarbeit/Quellen/Camera_Calibration/Camera_Calibration/robot_poses.json"
+    with open(path, "r") as file:
+        data = json.load(file)
+    poses = data["Posen"]
+    pose = poses["p" + str(next_counter+1)]
+    x = pose["x"]
+    y = pose["y"]
+    z = pose["z"]
+    a = pose["a"]
+    b = pose["b"]
+    c = pose["c"]
+    return x,y,z,a,b,c
+
 
 
