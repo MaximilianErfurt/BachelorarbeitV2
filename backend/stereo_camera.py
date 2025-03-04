@@ -123,9 +123,16 @@ class StereoCamera:
         distCoeffs_left = self.camera_left.distortion_coefficients.flatten().reshape(5,1)
         distCoeffs_right = self.camera_right.distortion_coefficients.flatten().reshape(5,1)
         # calculate rectification
-        R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(cameraMatrix_left, distCoeffs_left,
-                                                    cameraMatrix_right, distCoeffs_right,
-                                                    image_size, self.cl_R_cr, self.cl_T_cr)
+        # R1, R2, P1, P2, Q, _, _ = cv2.stereoRectify(cameraMatrix_left, distCoeffs_left,
+        #                                             cameraMatrix_right, distCoeffs_right,
+        #                                             image_size, self.cl_R_cr, self.cl_T_cr)
+        R1, R2, P1, P2, Q, validPixROI1, validPixROI2 = cv2.stereoRectify(
+            cameraMatrix_left, distCoeffs_left,
+            cameraMatrix_right, distCoeffs_right,
+            image_size, self.cl_R_cr, self.cl_T_cr,
+            flags=cv2.CALIB_ZERO_DISPARITY
+        )
+
         # calculate rectification mapping
         map_left_x, map_left_y = cv2.initUndistortRectifyMap(cameraMatrix_left, distCoeffs_left, R1, P1, image_size, cv2.CV_32FC1)
         map_right_x, map_right_y = cv2.initUndistortRectifyMap(cameraMatrix_right, distCoeffs_right, R2, P2, image_size, cv2.CV_32FC1)
@@ -143,7 +150,7 @@ class StereoCamera:
         lambda_x_1 = self.camera_left.camera_matrix[0][0]
         lambda_x_2 = self.camera_right.camera_matrix[0][0]
         # scale right image to same focal length
-        x2_I = x2 * (lambda_x_1/lambda_x_2)
+        x2_I = x2 # * (lambda_x_1/lambda_x_2)
         d = x1 - x2_I
         print(d)
         Z = lambda_x_1*(self.base_line/d)
