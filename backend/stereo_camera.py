@@ -59,8 +59,8 @@ class StereoCamera:
         left_image, right_image = self.take_synced_images()
         left_image = Image("left", left_image)
         right_image = Image("right", right_image)
-        ret_left = left_image.find_chessboard()
-        ret_right = right_image.find_chessboard()
+        ret_left = left_image.find_chessboard(square_size= 2, checkerboard_size= (7,9))
+        ret_right = right_image.find_chessboard(square_size= 2, checkerboard_size= (7,9))
         if not ret_left and not ret_right:
             print("no Checkerboard")
         if len(self.calibration_images_right) > counter and len(self.calibration_images_left) > counter:
@@ -191,10 +191,10 @@ class StereoCamera:
     def transform_to_flange(self, p_cam):
         p_flange = self.camera_left.eye_hand_matrix @ p_cam
         print ("p_flange", p_flange)
-        p_tool = p_flange - [[0],
-                             [0],
-                             [-314.5],
-                             [0]]
+        p_tool = p_flange #- [[0],
+                           #  [0],
+                            # [-314.5],
+                             #[0]]
         return p_tool
 
     def send_position_to_robot(self):

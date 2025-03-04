@@ -70,13 +70,14 @@ class ExtrinsicCalibrationGUI(QDialog):
         #self.setGeometry(100, 100, 400, 100)
 
     def take_image(self):
-        self.image_taking_thread = threading.Thread(target = self.mono_cam.test_extrinsic_image, args=(self.next_counter,))
+        self.take_image_button.setEnabled(False)
+        self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)
         self.image_getting_thread.start()
-
     def update_image_label(self):
         self.image_taking_thread.join()
+        self.take_image_button.setEnabled(True)
         try:
             # try to get the image from according cam
             image = self.mono_cam.extrinsic_images[self.next_counter].cb_image
@@ -125,9 +126,9 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 10:
+        if self.next_counter == 18:
             self.next_button.setText("Finish")
-        if self.next_counter == 11:
+        if self.next_counter == 19:
             #self.mono_cam.extrinsic_calibration()
             self.mono_cam.opencv_hand_eye_calibration()
             self.close()

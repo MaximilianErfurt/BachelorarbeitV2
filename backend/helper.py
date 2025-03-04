@@ -28,8 +28,9 @@ def pose_to_transformation_matrix(pose):
     x, y, z, rx, ry, rz = map(float, pose)
 
     # transform euler angles to rotation matrix
-    rotation = R.from_euler("zyx", [rx, ry, rz])
-    r_mat = rotation.as_matrix()
+    #rotation = R.from_euler("zyx", [rx, ry, rz])
+    #r_mat = rotation.as_matrix()
+    r_mat, _ = cv2.Rodrigues(np.array([rx, ry, rz]))
 
     # create 4x4 transformationmatrix
     transformation_matrix = np.eye(4)
@@ -203,7 +204,7 @@ def dbscan_clustering(image):
     return centers
 
 def load_rob_poses(next_counter):
-    path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/rob_poses.json"
+    path = "C:/Users/Maximilian Erfurt/PycharmProjects/BachelorarbeitV2/rob_poses.json"
     #path = "C:/Users/Stevi/Desktop/Bachelorarbeit/Quellen/Camera_Calibration/Camera_Calibration/robot_poses.json"
     with open(path, "r") as file:
         data = json.load(file)
@@ -212,10 +213,10 @@ def load_rob_poses(next_counter):
     x = pose["x"]
     y = pose["y"]
     z = pose["z"]
-    a = pose["a"]
-    b = pose["b"]
-    c = pose["c"]
-    return x,y,z,a,b,c
+    rx = pose["rx"]
+    ry = pose["ry"]
+    rz = pose["rz"]
+    return x,y,z,rx,ry,rz
 
 
 

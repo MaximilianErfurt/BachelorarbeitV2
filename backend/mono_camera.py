@@ -69,8 +69,10 @@ class MonoCamera:
         :param next_counter:
         :return:
         """
-        image = Image(self.name, self.take_single_image())
-        ret = image.find_chessboard()
+        image = self.take_single_image()
+        self.save_image(next_counter, image)
+        image = Image(self.name, image)
+        ret = image.find_chessboard(square_size=2, checkerboard_size=(7,9))
         if not ret:
             print("Schachbrettmuster nicht gefunden")
         if len(self.extrinsic_images) > next_counter:
@@ -96,6 +98,16 @@ class MonoCamera:
             self.extrinsic_images.append(image)
             print("appended")
 
+    def save_image(self, next_counter, image):
+        path = "C:/Users/Maximilian Erfurt/PycharmProjects/BachelorarbeitV2/images"
+        # os.makedirs(path, exist_ok=True)
+        file_name = os.path.join(path, f"{next_counter}.png")
+
+        success = cv2.imwrite(file_name, image)
+        if success:
+            print(f"Image saved: {file_name}")
+        else:
+            print("error while saveing image!")
 
     def load_image(self, next_counter):
         #path = "C:/Users/Stevi/Desktop/Bachelorarbeit/Quellen/Camera_Calibration/Camera_Calibration/images"
@@ -151,7 +163,7 @@ class MonoCamera:
         :return:
         """
         image = Image(self.name, self.take_single_image())
-        ret = image.find_chessboard()
+        ret = image.find_chessboard(square_size= 2, checkerboard_size=(7,9) )
         if not ret:
             print("schachbrettmuster nicht gefunden")
         if len(self.intrinsic_images) > next_counter:
@@ -255,10 +267,10 @@ class MonoCamera:
         r_vecs = list(r_vecs)
         for i in range(len(r_vecs)):
             R, _ = cv2.Rodrigues(r_vecs[i])
-            # R_inv = linalg.inv(R)
-            r, _ = cv2.Rodrigues(R)
+            R_inv = linalg.inv(R)
+            r, _ = cv2.Rodrigues(R_inv)
             r_vecs[i] = r
-        # t_vecs = [-t for t in t_vecs]
+        t_vecs = [-t for t in t_vecs]
         return r_vecs, t_vecs
 
     def get_transformation_flange2base(self):
@@ -279,10 +291,10 @@ class MonoCamera:
         r_vecs, t_vecs = [], []
         for T in self.extrinsic_rob_transformations:
             R = T[:3, :3]   # slice the rotation matrix
-            # R_inv = linalg.inv(R)   # inverse R to get rotation from flange to base
-            r,_ = cv2.Rodrigues(R)    # turn rotation matrix int rotational vector
+            R_inv = linalg.inv(R)   # inverse R to get rotation from flange to base
+            r,_ = cv2.Rodrigues(R_inv)    # turn rotation matrix int rotational vector
             r_vecs.append(r)    # append to list
-            t_vecs.append(T[:3, 3])  # slice t_vec and multiply with -1 to get flange to base
+            t_vecs.append(-1*T[:3, 3])  # slice t_vec and multiply with -1 to get flange to base
 
         return r_vecs, t_vecs
 
