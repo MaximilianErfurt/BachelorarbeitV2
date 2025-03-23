@@ -26,7 +26,7 @@ class Image:
         cv2.imshow("image", self.image)
         cv2.waitKey(0)
 
-    def find_chessboard(self, square_size = 2.55, checkerboard_size = (6, 9)):
+    def find_chessboard(self, square_size, checkerboard_size = (6, 9)):
 
         # termination criteria
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -37,9 +37,11 @@ class Image:
 
         ret, self.imgp = cv2.findChessboardCorners(self.image, (checkerboard_size[1], checkerboard_size[0]), None)
         if ret:
-            corners = cv2.cornerSubPix(self.cb_image, self.imgp, (11, 11), (-1, -1), criteria)
-            cv2.drawChessboardCorners(self.cb_image, (checkerboard_size[1], checkerboard_size[0]), corners, ret)
-            #cv2.imshow("image", self.image)
+            self.imgp = cv2.cornerSubPix(self.cb_image, self.imgp, (11, 11), (-1, -1), criteria)
+            if np.linalg.norm(self.imgp[0][0]) > np.linalg.norm(self.imgp[-1][0]):
+                self.imgp = self.imgp[::-1]
+            cv2.drawChessboardCorners(self.cb_image, (checkerboard_size[1], checkerboard_size[0]), self.imgp, ret)
+            #cv2.shape = {tuple: 3} (63, 1, 2)imshow("image", self.image)
             #cv2.waitKey(0)
             return self.imgp, self.objp
         else:

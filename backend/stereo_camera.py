@@ -59,8 +59,8 @@ class StereoCamera:
         left_image, right_image = self.take_synced_images()
         left_image = Image("left", left_image)
         right_image = Image("right", right_image)
-        ret_left = left_image.find_chessboard(square_size= 2, checkerboard_size= (7,9))
-        ret_right = right_image.find_chessboard(square_size= 2, checkerboard_size= (7,9))
+        ret_left = left_image.find_chessboard(square_size= 20, checkerboard_size= (7,9))
+        ret_right = right_image.find_chessboard(square_size= 20, checkerboard_size= (7,9))
         if not ret_left and not ret_right:
             print("no Checkerboard")
         if len(self.calibration_images_right) > counter and len(self.calibration_images_left) > counter:

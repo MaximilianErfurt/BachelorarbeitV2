@@ -30,6 +30,7 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.a_label = QLabel("A-Koordinate")
         self.b_label = QLabel("B-Koordinate")
         self.c_label = QLabel("C-Koordinate")
+        self.next_counter_label = QLabel("next counter:" + str(self.next_counter))
 
         # create textboxes
         self.x_text = QLineEdit(self)
@@ -63,6 +64,7 @@ class ExtrinsicCalibrationGUI(QDialog):
         layout.addWidget(self.c_text, 3, 2)
         layout.addWidget(self.next_button, 4, 0)
         layout.addWidget(self.take_image_button, 4, 1)
+        layout.addWidget(self.next_counter_label, 4, 2)
         layout.addWidget(self.image_label, 5, 0, 3, 3)
 
         self.setLayout(layout)
@@ -71,10 +73,13 @@ class ExtrinsicCalibrationGUI(QDialog):
 
     def take_image(self):
         self.take_image_button.setEnabled(False)
-        self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
+        # self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
+        self.image_taking_thread = threading.Thread(target=self.mono_cam.load_extrinsic_image,
+                                                    args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)
         self.image_getting_thread.start()
+
     def update_image_label(self):
         self.image_taking_thread.join()
         self.take_image_button.setEnabled(True)
@@ -88,9 +93,11 @@ class ExtrinsicCalibrationGUI(QDialog):
             self.image_label.setPixmap(pixmap)      # put pixmap on label
             self.image_label.setScaledContents(False)# scale image to fit in label
 
-
         except IndexError as e:
             print("not available")
+
+    def update_counter_label(self):
+        self.next_counter_label.setText("next counter:" + str(self.next_counter))
 
 
     def call_next_button(self):
@@ -126,13 +133,14 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 18:
+        if self.next_counter == 16:
             self.next_button.setText("Finish")
-        if self.next_counter == 19:
-            #self.mono_cam.extrinsic_calibration()
-            self.mono_cam.opencv_hand_eye_calibration()
+        if self.next_counter == 17:
+            self.mono_cam.calculate_hand_eye_matrix()
+            #self.mono_cam.opencv_hand_eye_calibration()
             self.close()
         self.next_counter += 1
+        self.update_counter_label()
 
 
 

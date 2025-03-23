@@ -50,9 +50,9 @@ class IntrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 12:
+        if self.next_counter == 16:
             self.next_button.setText("Finish")
-        if self.next_counter == 13:
+        if self.next_counter == 17:
             self.mono_cam.intrinsic_calibration()
             self.close()
         self.next_counter += 1
@@ -78,7 +78,7 @@ class IntrinsicCalibrationGUI(QDialog):
         print("bild updated")
 
     def call_take_image(self):
-        self.image_taking_thread = threading.Thread(target=self.mono_cam.take_intrinsic_image,
+        self.image_taking_thread = threading.Thread(target=self.mono_cam.test_intrinsic_image,
                                                     args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)
