@@ -75,6 +75,7 @@ class MonoCamera:
         image = self.take_single_image()
         # save_image(next_counter, image)
         image = Image(self.name, image)
+        image = cv2.undistort(image, self.camera_matrix, self.distortion_coefficients, None, self.camera_matrix)
         ret = image.find_chessboard(square_size=20, checkerboard_size=(7,9))
         if not ret:
             print("Schachbrettmuster nicht gefunden")
@@ -178,7 +179,7 @@ class MonoCamera:
 
     def visualize_cb_coord_sys(self, r_vecs, t_vecs):
         images = self.extrinsic_images
-        axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+        axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
         for i in range(len(r_vecs)):
             imgpts, _ = cv2.projectPoints(axis, r_vecs[i], t_vecs[i], self.camera_matrix, self.distortion_coefficients)
             image = cv2.cvtColor(images[i].cb_image, cv2.COLOR_GRAY2RGB)
