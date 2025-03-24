@@ -259,22 +259,22 @@ def r_and_t_to_T(r_vec, t_vec):
     return c_T_cb
 
 def solve_ax_xb(A_i, B_i):
-    tA = np.array([A[0:3, 3] for A in A_i])  # Flanschpositionen
-    tB = np.array([B[0:3, 3] for B in B_i])  # Markerpositionen
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-
-    for i, (x, y, z) in enumerate(tA):
-        ax.scatter(x, y, z, color="red")
-        ax.text(x, y, z, str(i), color="red")
-
-    for i, (x, y, z) in enumerate(tB):
-        ax.scatter(x, y, z, color="blue")
-        ax.text(x, y, z, str(i), color="blue")
-
-    ax.legend(["Flanschpositionen", "Markerpositionen"])
-    plt.show()
+    # tA = np.array([A[0:3, 3] for A in A_i])  # Flanschpositionen
+    # tB = np.array([B[0:3, 3] for B in B_i])  # Markerpositionen
+    #
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    #
+    # for i, (x, y, z) in enumerate(tA):
+    #     ax.scatter(x, y, z, color="red")
+    #     ax.text(x, y, z, str(i), color="red")
+    #
+    # for i, (x, y, z) in enumerate(tB):
+    #     ax.scatter(x, y, z, color="blue")
+    #     ax.text(x, y, z, str(i), color="blue")
+    #
+    # ax.legend(["Flanschpositionen", "Markerpositionen"])
+    # plt.show()
 
     rA_i = []
     rB_i = []
