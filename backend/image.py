@@ -16,7 +16,7 @@ class Image:
         self.apples = []
 
         # param for calibration
-        self.cb_image = image
+        self.cb_image = self.rgb_image.copy()
         self.imgp = None
         self.objp = None
 
@@ -26,7 +26,7 @@ class Image:
         cv2.imshow("image", self.image)
         cv2.waitKey(0)
 
-    def find_chessboard(self, square_size, checkerboard_size = (6, 9)):
+    def find_chessboard(self, square_size, checkerboard_size = (7, 9)):
 
         # termination criteria
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -37,9 +37,9 @@ class Image:
 
         ret, self.imgp = cv2.findChessboardCorners(self.image, (checkerboard_size[1], checkerboard_size[0]), None)
         if ret:
-            self.imgp = cv2.cornerSubPix(self.cb_image, self.imgp, (11, 11), (-1, -1), criteria)
-            if np.linalg.norm(self.imgp[0][0]) > np.linalg.norm(self.imgp[-1][0]):
-                self.imgp = self.imgp[::-1]
+            self.imgp = cv2.cornerSubPix(self.image, self.imgp, (11, 11), (-1, -1), criteria)
+            #if np.linalg.norm(self.imgp[0][0]) > np.linalg.norm(self.imgp[-1][0]):
+            #    self.imgp = self.imgp[::-1]
             cv2.drawChessboardCorners(self.cb_image, (checkerboard_size[1], checkerboard_size[0]), self.imgp, ret)
             #cv2.shape = {tuple: 3} (63, 1, 2)imshow("image", self.image)
             #cv2.waitKey(0)
@@ -47,6 +47,13 @@ class Image:
         else:
             print("no chessboard found")
             return False
+
+    def invert_imgpt(self, checkerboard_size = (7, 9)):
+        self.imgp = self.imgp[::-1]
+        #self.objp = self.objp[::-1]
+        image = self.rgb_image.copy()
+        cv2.drawChessboardCorners(image, (checkerboard_size[1], checkerboard_size[0]), self.imgp, True)
+        self.cb_image = image.copy()
 
     def find_apples(self):
         # load pre trained model

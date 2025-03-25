@@ -207,8 +207,8 @@ def dbscan_clustering(image):
     return centers
 
 def load_rob_poses(next_counter):
-    # path = "C:/Users/Maximilian Erfurt/PycharmProjects/BachelorarbeitV2/rob_poses.json"
-    path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/rob_poses.json"
+    path = "C:/Users/Maximilian Erfurt/PycharmProjects/BachelorarbeitV2/rob_poses.json"
+    #path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/rob_poses.json"
     with open(path, "r") as file:
         data = json.load(file)
     poses = data["Posen"]
@@ -225,7 +225,8 @@ def load_rob_poses(next_counter):
 def load_image(next_counter):
     #path = "C:/Users/Stevi/Desktop/Bachelorarbeit/Quellen/Camera_Calibration/Camera_Calibration/images"
     #file_name = f"p{next_counter + 1:02d}.png"
-    path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/images/"
+    #path = "C:/Users/Stevi/PycharmProjects/BachelorarbeitV2/images/"
+    path = "C:/Users/Maximilian Erfurt/PycharmProjects/BachelorarbeitV2/images/"
     file_name = str(next_counter) + ".png"
     image_path = os.path.join(path, file_name)
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
@@ -305,25 +306,25 @@ def solve_ax_xb(A_i, B_i):
 
     T = np.dot(rB_i, np.transpose(rA_i))
 
-    # # svd
-    # U, s, Vh = scipy.linalg.svd(T)
-    # Up = np.dot(U, Vh)
-    # P = np.linalg.multi_dot([np.transpose(Vh), np.diag(s), Vh])
-    # Usp, Dp, Vhp = scipy.linalg.svd(P)
+    # svd
+    U, s, Vh = scipy.linalg.svd(T)
+    Up = np.dot(U, Vh)
+    P = np.linalg.multi_dot([np.transpose(Vh), np.diag(s), Vh])
+    Usp, Dp, Vhp = scipy.linalg.svd(P)
 
 
 
-    # row, col = np.shape(P)
-    # f = np.linalg.det(Up)
-    # if f<0:
-    #     X = np.eye(row, col) * (-1)
-    # else:
-    #     X = np.eye(row, col)
+    row, col = np.shape(P)
+    f = np.linalg.det(Up)
+    if f<0:
+        X = np.eye(row, col) * (-1)
+    else:
+        X = np.eye(row, col)
 
     # calculate Rx
-    # Rx = np.linalg.multi_dot([np.transpose(Vhp), X, Vhp, np.transpose(Up)])
-    # u = fractional_matrix_power(np.dot(np.transpose(T), T), -0.5)
-    Rx = np.dot(fractional_matrix_power(np.dot(np.transpose(T), T), t = -0.5), np.transpose(T))
+    Rx = np.linalg.multi_dot([np.transpose(Vhp), X, Vhp, np.transpose(Up)])
+    u = fractional_matrix_power(np.dot(np.transpose(T), T), -0.5)
+    #Rx = np.dot(fractional_matrix_power(np.dot(np.transpose(T), T), t = -0.5), np.transpose(T))
     print("Rx: \n", Rx)
     # calculate tx
     E = np.eye(3, 3)
@@ -350,6 +351,7 @@ def solve_ax_xb(A_i, B_i):
     X[0:3, 3] = np.transpose(tx)
 
     return X, Rx, tx, DA_i, DB_i, tA_i, tB_i
+
 
 
 

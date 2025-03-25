@@ -45,6 +45,9 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.next_button.clicked.connect(self.call_next_button)
         self.take_image_button = QPushButton("Foto aufnehmen")
         self.take_image_button.clicked.connect(self.take_image)
+        self.invert_button = QPushButton("Invertieren")
+        self.invert_button.clicked.connect(self.call_invert_button)
+        self.invert_button.setEnabled(False)
 
         # create layout
         layout = QGridLayout()
@@ -65,7 +68,8 @@ class ExtrinsicCalibrationGUI(QDialog):
         layout.addWidget(self.next_button, 4, 0)
         layout.addWidget(self.take_image_button, 4, 1)
         layout.addWidget(self.next_counter_label, 4, 2)
-        layout.addWidget(self.image_label, 5, 0, 3, 3)
+        layout.addWidget(self.image_label, 6, 0, 3, 3)
+        layout.addWidget(self.invert_button, 5, 0)
 
         self.setLayout(layout)
         self.setWindowTitle("Extrinsische Kalibrierung")
@@ -73,9 +77,9 @@ class ExtrinsicCalibrationGUI(QDialog):
 
     def take_image(self):
         self.take_image_button.setEnabled(False)
-        # self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
+        #self.image_taking_thread = threading.Thread(target = self.mono_cam.take_extrinsic_image, args=(self.next_counter,))
         self.image_taking_thread = threading.Thread(target=self.mono_cam.load_extrinsic_image,
-                                                    args=(self.next_counter,))
+                                                   args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)
         self.image_getting_thread.start()
@@ -83,6 +87,7 @@ class ExtrinsicCalibrationGUI(QDialog):
     def update_image_label(self):
         self.image_taking_thread.join()
         self.take_image_button.setEnabled(True)
+        self.invert_button.setEnabled(True)
         try:
             # try to get the image from according cam
             image = self.mono_cam.extrinsic_images[self.next_counter].cb_image
@@ -101,6 +106,7 @@ class ExtrinsicCalibrationGUI(QDialog):
 
 
     def call_next_button(self):
+        self.invert_button.setEnabled(False)
         # save values
         x = self.x_text.text()
         y = self.y_text.text()
@@ -133,14 +139,18 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 16:
+        if self.next_counter == 18:
             self.next_button.setText("Finish")
-        if self.next_counter == 17:
+        if self.next_counter == 19:
             self.mono_cam.calculate_hand_eye_matrix()
             #self.mono_cam.opencv_hand_eye_calibration()
             self.close()
         self.next_counter += 1
         self.update_counter_label()
+
+    def call_invert_button(self):
+        self.mono_cam.invert_cb(self.next_counter)
+        self.update_image_label()
 
 
 

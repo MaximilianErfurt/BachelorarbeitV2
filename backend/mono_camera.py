@@ -73,9 +73,10 @@ class MonoCamera:
         :return:
         """
         image = self.take_single_image()
-        # save_image(next_counter, image)
-        image = Image(self.name, image)
+        save_image(next_counter, image)
         image = cv2.undistort(image, self.camera_matrix, self.distortion_coefficients, None, self.camera_matrix)
+        image = Image(self.name, image)
+
         ret = image.find_chessboard(square_size=20, checkerboard_size=(7,9))
         if not ret:
             print("Schachbrettmuster nicht gefunden")
@@ -91,7 +92,9 @@ class MonoCamera:
         load an image for extrinsic calibration, find checkerboard and save
         :return:
         """
-        image = Image(self.name, load_image(next_counter))
+        image = load_image(next_counter)
+        image = cv2.undistort(image, self.camera_matrix, self.distortion_coefficients, None, self.camera_matrix)
+        image = Image(self.name, image)
         ret = image.find_chessboard(square_size=20, checkerboard_size=(7, 9))
         if not ret:
             print("Schachbrettmuster nicht gefunden")
@@ -101,6 +104,9 @@ class MonoCamera:
         else:
             self.extrinsic_images.append(image)
             print("appended")
+
+    def invert_cb(self, next_counter):
+        self.extrinsic_images[next_counter].invert_imgpt()
 
     def add_extrinsic_rob_poses(self, rob_pose):
         transformation_matrix = pose_to_transformation_matrix(rob_pose)
@@ -173,7 +179,7 @@ class MonoCamera:
 
         ret, _, _, r_vecs, t_vecs = cv2.calibrateCamera(objpoints, imgpoints, size, self.camera_matrix,
                                                         self.distortion_coefficients)  # get rotational vectors and translational vectors
-        print(r_vecs, t_vecs)
+        print("rvecs",r_vecs,"tvecs", t_vecs)
         self.visualize_cb_coord_sys(r_vecs, t_vecs)
         return r_vecs, t_vecs
 
@@ -182,7 +188,8 @@ class MonoCamera:
         axis = np.float32([[3,0,0], [0,3,0], [0,0,3]]).reshape(-1,3)
         for i in range(len(r_vecs)):
             imgpts, _ = cv2.projectPoints(axis, r_vecs[i], t_vecs[i], self.camera_matrix, self.distortion_coefficients)
-            image = cv2.cvtColor(images[i].cb_image, cv2.COLOR_GRAY2RGB)
+            #image = cv2.cvtColor(images[i].cb_image, cv2.COLOR_GRAY2RGB)
+            image = images[i].cb_image.copy()
             # Zeichne Achsen (rot = X, grün = Y, blau = Z)
             origin = tuple(imgpts[0].ravel().astype(int))
             cv2.line(image, origin, tuple(imgpts[1].ravel().astype(int)), (0, 255, 0), 2)
@@ -335,10 +342,11 @@ class MonoCamera:
         r_vecs = list(r_vecs)
         for i in range(len(r_vecs)):
             R, _ = cv2.Rodrigues(r_vecs[i])
-            R_inv = linalg.inv(R)
+            #R_inv = linalg.inv(R)
+            R_inv = R
             r, _ = cv2.Rodrigues(R_inv)
             r_vecs[i] = r
-        t_vecs = [-t for t in t_vecs]
+        #t_vecs = [-t for t in t_vecs]
         return r_vecs, t_vecs
 
     def get_transformation_flange2base(self):
@@ -359,7 +367,8 @@ class MonoCamera:
         r_vecs, t_vecs = [], []
         for T in self.extrinsic_rob_transformations:
             R = T[:3, :3]   # slice the rotation matrix
-            R_inv = linalg.inv(R)   # inverse R to get rotation from flange to base
+            #R_inv = linalg.inv(R)   # inverse R to get rotation from flange to base
+            R_inv = R
             r,_ = cv2.Rodrigues(R_inv)    # turn rotation matrix int rotational vector
             r_vecs.append(r)    # append to list
             t_vecs.append(-1*T[:3, 3])  # slice t_vec and multiply with -1 to get flange to base
