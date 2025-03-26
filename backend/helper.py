@@ -324,8 +324,9 @@ def solve_ax_xb(A_i, B_i):
     # calculate Rx
     Rx = np.linalg.multi_dot([np.transpose(Vhp), X, Vhp, np.transpose(Up)])
     u = fractional_matrix_power(np.dot(np.transpose(T), T), -0.5)
-    #Rx = np.dot(fractional_matrix_power(np.dot(np.transpose(T), T), t = -0.5), np.transpose(T))
+    Xx = np.dot(fractional_matrix_power(np.dot(np.transpose(T), T), t = -0.5), np.transpose(T))
     print("Rx: \n", Rx)
+    print("Xx: \n", Xx)
     # calculate tx
     E = np.eye(3, 3)
     Ci = None

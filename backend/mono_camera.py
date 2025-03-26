@@ -141,6 +141,7 @@ class MonoCamera:
             except IndexError as e:
                 print(e)
         f_T_c, Dx, rx, DA_i, DB_i, rA_i, rB_i = helper.solve_ax_xb(f_T_f, c_T_c)
+        self.eye_hand_matrix = f_T_c
 
         # check solution
         # translation error
@@ -158,6 +159,7 @@ class MonoCamera:
         rotational_error = sum(e_R_i)/len(e_R_i)
         print("rotational error:\n", str(rotational_error) + "rad")
         print("rotational error: " + str(rotational_error * 180 / np.pi) + " degrees")
+        self.save_camera_config()
 
 
 

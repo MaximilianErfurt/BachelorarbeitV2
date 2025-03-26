@@ -68,9 +68,9 @@ class StereoCalibrationGUI(QDialog):
         self.image_label_left.clear()
         self.image_label_right.clear()
         self.adjustSize()
-        if self.counter == 12:
+        if self.counter == 16:
             self.next_button.setText("Finish")
-        if self.counter == 13:
+        if self.counter == 17:
             self.stereo_cam.stereo_calibration()
             self.close()
         self.counter += 1

@@ -139,9 +139,9 @@ class ExtrinsicCalibrationGUI(QDialog):
         self.image_label.clear()
         self.adjustSize()
 
-        if self.next_counter == 18:
+        if self.next_counter == 17:
             self.next_button.setText("Finish")
-        if self.next_counter == 19:
+        if self.next_counter == 18:
             self.mono_cam.calculate_hand_eye_matrix()
             #self.mono_cam.opencv_hand_eye_calibration()
             self.close()

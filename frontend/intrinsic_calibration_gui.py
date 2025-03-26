@@ -78,7 +78,7 @@ class IntrinsicCalibrationGUI(QDialog):
         print("bild updated")
 
     def call_take_image(self):
-        self.image_taking_thread = threading.Thread(target=self.mono_cam.test_intrinsic_image,
+        self.image_taking_thread = threading.Thread(target=self.mono_cam.take_intrinsic_image,
                                                     args=(self.next_counter,))
         self.image_taking_thread.start()
         self.image_getting_thread = threading.Thread(target=self.update_image_label)

@@ -189,7 +189,7 @@ class StereoCamera:
         return x, y
 
     def transform_to_flange(self, p_cam):
-        p_flange = self.camera_left.eye_hand_matrix @ p_cam
+        p_flange = np.dot(self.camera_left.eye_hand_matrix, p_cam)
         print ("p_flange", p_flange)
         p_tool = p_flange #- [[0],
                            #  [0],
