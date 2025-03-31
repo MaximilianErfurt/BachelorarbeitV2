@@ -12,10 +12,11 @@ import threading
 
 
 class StartGUI(QDialog):
-    def __init__(self, parent=None, stereo_cam = None):
+    def __init__(self, robot, stereo_cam = None, parent=None):
         super().__init__(parent)
         # vars
         self.stereo_cam = stereo_cam
+        self.robot = robot
         
         # threads
         self.image_taking_thread = None
@@ -33,6 +34,7 @@ class StartGUI(QDialog):
 
         # def buttons
         self.processing_button = None
+        self.cut_out_button = None
         self.take_images_button = QPushButton("Fotos aufnehmen")
         # connect signals
         self.take_images_button.clicked.connect(self.call_take_images_button)
@@ -40,11 +42,11 @@ class StartGUI(QDialog):
         # def layout
         self.layout = QGridLayout()
         # add widgets
-        self.layout.addWidget(self.take_images_button, 0, 1)
-        self.layout.addWidget(self.text_image_left, 1, 0)
+        self.layout.addWidget(self.take_images_button, 0, 0)
+        self.layout.addWidget(self.text_image_left, 1, 1)
         self.layout.addWidget(self.text_image_right, 1, 2)
-        self.layout.addWidget(self.image_label_left, 2, 0)
-        self.layout.addWidget(self.image_label_right,2, 2)
+        self.layout.addWidget(self.image_label_left, 3, 1)
+        self.layout.addWidget(self.image_label_right,3, 2)
 
         self.setLayout(self.layout)
         self.setWindowTitle("Processing")
@@ -54,6 +56,8 @@ class StartGUI(QDialog):
         # deactivate image taking button to avoid multiple streams to the camera
         # gets activated in update image label after the thread has finished
         self.take_images_button.setEnabled(False)
+        # move robot in position
+        self.robot.move_camera_position()
         # start threads to take the images and update the label to show them in the gui
         self.image_taking_thread = threading.Thread(target=self.stereo_cam.take_mono_images)
         self.image_taking_thread.start()
@@ -63,7 +67,7 @@ class StartGUI(QDialog):
         self.processing_button = QPushButton("Finde Ausstechpunkt")
         self.processing_button.setEnabled(False)
         self.processing_button.clicked.connect(self.call_processing_button)
-        self.layout.addWidget(self.processing_button, 1,1)
+        self.layout.addWidget(self.processing_button, 1,0)
         #self.showMaximized()
         self.update()
 
@@ -76,6 +80,12 @@ class StartGUI(QDialog):
         self.processing_thread.start()
         self.update_label_thread = threading.Thread(target=self.update_image_label_processed)
         self.update_label_thread.start()
+        # add cut out button
+        self.cut_out_button = QPushButton("Apfel ausstechen")
+        self.cut_out_button.setEnabled(False)
+        self.cut_out_button.clicked.connect(self.call_cut_out_button)
+        self.layout.addWidget(self.cut_out_button, 2, 0)
+        self.update()
         
     def update_image_label_not_processed(self):
         # wait for image taking thread to finish
@@ -128,6 +138,21 @@ class StartGUI(QDialog):
         # activate the image taking button and the start process button again to allow taking the images again
         self.take_images_button.setEnabled(True)
         self.processing_button.setEnabled(True)
+        self.cut_out_button.setEnabled(True)
+
+    def call_cut_out_button(self):
+        #x, y, z, _ = self.stereo_cam.p_tool
+        x, y, z = 0.010, 0.060, 0.250
+        x_curr, y_curr, z_curr, rx_curr, ry_curr, rz_curr = self.robot.get_current_position()
+        above_cut_out_pose = [x_curr + x, y_curr + y, z_curr +z + 0.100, rx_curr, ry_curr, rz_curr]
+        cut_out_pose = [x_curr + x, y_curr + y, 0.0, rx_curr, ry_curr, rz_curr]
+        self.robot.move_resting_position()
+        self.robot.move_l(above_cut_out_pose)
+        self.robot.move_l(cut_out_pose)
+        self.robot.move_l(above_cut_out_pose)
+        self.robot.move_resting_position()
+
+
 
 
 

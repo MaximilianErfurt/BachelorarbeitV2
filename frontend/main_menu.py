@@ -8,10 +8,12 @@ from start_gui import StartGUI
 from extrinsic_calibration_gui import ExtrinsicCalibrationGUI
 from intrinsic_calibration_gui import IntrinsicCalibrationGUI
 from stereo_calibration_gui import StereoCalibrationGUI
+from backend.robot import Robot
 class MainMenu(QWidget):
-    def __init__(self, stereo_cam: StereoCamera):
+    def __init__(self, stereo_cam: StereoCamera, robot: Robot):
         super().__init__()
         self.stereo_cam = stereo_cam
+        self.rob = robot
         # subwindows
         self.extrinsic_calibration_window_left = None
         self.extrinsic_calibration_window_right = None
@@ -85,8 +87,10 @@ class MainMenu(QWidget):
 
 
     def call_start(self):
-        self.start_window = StartGUI(self, self.stereo_cam)
+        self.rob.move_resting_position()
+        self.start_window = StartGUI(robot = self.rob, parent=self, stereo_cam=self.stereo_cam)
         self.start_window.exec()
+
 
     def call_stereo_calibration(self):
         self.stereo_calibration_window = StereoCalibrationGUI(self, self.stereo_cam)

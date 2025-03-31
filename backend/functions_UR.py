@@ -1,11 +1,12 @@
-from FourPointsMethod  import*
+#from FourPointsMethod  import*
 import socket
 import time
 import struct
 import math
+import numpy as np
 
 # Setze die IP-Adresse des Roboters
-robot_ip = '192.168.0.118'
+robot_ip = '172.28.178.77'
 
 ## Kommunikation mit UR herstellen
 def send_urscript(script, host):
@@ -125,7 +126,7 @@ def has_reached_position(current_pos, target_pos, threshold=0.005):
 
 def move_to_main_position(robot_ip):
     main_position = [-0.460, -0.03210, 0.45522, 1.188, 4.364, -1.000]
-    script = generate_urscript_movel(*main_position)
+    script = generate_urscript_movej(*main_position)
     send_urscript(script, robot_ip)
 
      # Wait until the robot reaches the position
@@ -277,11 +278,11 @@ def load_filtered_list(filename):
             filtered_list.append((int(values[0]), int(values[1]), int(values[2])))
     return filtered_list
 
-if __name__ == '__main__':
+
 
    # Calculation of the transformation matrix
-    four_points_method = FourPointsMethod("points.json")
-    transform_matrix = four_points_method.transform_pix_mm
+    #four_points_method = FourPointsMethod("points.json")
+    #transform_matrix = four_points_method.transform_pix_mm
     
     move_to_main_position(robot_ip)
 """     move_to_prestart_position(robot_ip)
