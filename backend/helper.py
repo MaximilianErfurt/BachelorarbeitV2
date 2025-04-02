@@ -353,6 +353,21 @@ def solve_ax_xb(A_i, B_i):
 
     return X, Rx, tx, DA_i, DB_i, tA_i, tB_i
 
+def trans_pose(tcp_pose, target_pose):
+    #x_tcp, y_tcp, z_tcp, rx_tcp, ry_tcp, rz_tcp = tcp_pose.flatten
+    B_T_tcp = pose_to_transformation_matrix(tcp_pose)
+    tcp_T_p = pose_to_transformation_matrix(target_pose)
+    B_T_p = np.dot(B_T_tcp, tcp_T_p)
+    print(B_T_p)
+    x, y, z = B_T_p[0:3, 3]
+    D = B_T_p[0:3, 0:3]
+    rotation = R.from_matrix(matrix = D)
+    r_vec = rotation.as_rotvec()
+    return [x, y, z, r_vec[0], r_vec[1], r_vec[2]]
+
+
+
+
 
 
 

@@ -75,7 +75,13 @@ class Image:
     def mark_apple_blossom_on_image(self, apple):
         cords = apple.get_image_coordinate()
         print(cords)
-        self.rgb_image[cords[0], cords[1]] = (255, 0, 0)
+
+        y, x = cords  # Falls cords als (row, col) gegeben ist
+        line_length = 5  # Länge der Linien des Kreuzes
+
+        # Zeichne das Kreuz
+        cv2.line(self.rgb_image, (x - line_length, y), (x + line_length, y), (255, 0, 0), 1)
+        cv2.line(self.rgb_image, (x, y - line_length), (x, y + line_length), (255, 0, 0), 1)
         #cv2.imshow("real image", self.rgb_image)
         #cv2.waitKey(0)
 

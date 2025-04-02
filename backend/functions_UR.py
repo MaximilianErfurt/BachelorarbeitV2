@@ -6,7 +6,7 @@ import math
 import numpy as np
 
 # Setze die IP-Adresse des Roboters
-robot_ip = '172.28.178.77'
+#robot_ip = '172.28.178.77'
 
 ## Kommunikation mit UR herstellen
 def send_urscript(script, host):

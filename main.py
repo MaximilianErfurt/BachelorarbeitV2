@@ -10,7 +10,7 @@ if __name__ == "__main__":
     left_cam = MonoCamera(dai.CameraBoardSocket.CAM_B, "left")
     right_cam = MonoCamera(dai.CameraBoardSocket.CAM_C, "right")
     stereo_cam = StereoCamera(left_cam, right_cam)
-    robot = Robot('172.28.178.77')
+    robot = Robot('192.168.0.118')
     app = QApplication(sys.argv)
     main_menu = MainMenu(stereo_cam, robot)
     main_menu.show()

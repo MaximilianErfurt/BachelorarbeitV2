@@ -3,11 +3,13 @@ from PyQt5.QtCore import Qt
 from Tools.scripts.generate_sre_constants import update_file
 from seaborn import jointplot
 
+import helper
 from helper import image_to_QImage
 from PyQt5.QtGui import QPixmap
 
 from backend import stereo_camera
 import threading
+from functions_UR import*
 
 
 
@@ -141,13 +143,22 @@ class StartGUI(QDialog):
         self.cut_out_button.setEnabled(True)
 
     def call_cut_out_button(self):
-        #x, y, z, _ = self.stereo_cam.p_tool
-        x, y, z = 0.010, 0.060, 0.250
+        x, y, z, _ = self.stereo_cam.p_tool.flatten()/1000
+
+        #x, y, z = 0.010, 0.060, 0.250
         x_curr, y_curr, z_curr, rx_curr, ry_curr, rz_curr = self.robot.get_current_position()
-        above_cut_out_pose = [x_curr + x, y_curr + y, z_curr +z + 0.100, rx_curr, ry_curr, rz_curr]
-        cut_out_pose = [x_curr + x, y_curr + y, 0.0, rx_curr, ry_curr, rz_curr]
+        target = helper.trans_pose(self.robot.get_current_position(), [x, y, z, 0, 0, 0])
+
+
+        above_cut_out_pose = np.array(target) + np.array([0,0,0.050, 0, 0, 0])
+        cut_out_pose = target
+        cut_out_pose[2] = 0.0198
+        #cut_out_pose[4] = 1.0
         self.robot.move_resting_position()
         self.robot.move_l(above_cut_out_pose)
         self.robot.move_l(cut_out_pose)
         self.robot.move_l(above_cut_out_pose)
+        self.robot.move_pre_drop()
+        self.robot.move_drop()
+        self.robot.move_pre_drop()
         self.robot.move_resting_position()
