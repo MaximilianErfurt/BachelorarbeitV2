@@ -153,7 +153,9 @@ class StartGUI(QDialog):
         above_cut_out_pose = np.array(target) + np.array([0,0,0.050, 0, 0, 0])
         cut_out_pose = target
         cut_out_pose[2] = 0.0198
-        #cut_out_pose[4] = 1.0
+        cut_out_pose[3] = 0.992
+        cut_out_pose[4] = -2.980
+        cut_out_pose[5] = -0.014
         self.robot.move_resting_position()
         self.robot.move_l(above_cut_out_pose)
         self.robot.move_l(cut_out_pose)
