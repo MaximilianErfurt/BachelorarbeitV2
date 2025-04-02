@@ -151,13 +151,3 @@ class StartGUI(QDialog):
         self.robot.move_l(cut_out_pose)
         self.robot.move_l(above_cut_out_pose)
         self.robot.move_resting_position()
-
-
-
-
-
-
-
-        
-        
-
